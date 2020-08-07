@@ -1,48 +1,43 @@
 /**
- * Return the chart container.
- *
- * @return DOM
- */
-function getChartContainer() {
-  const data = [4, 8, 15, 16, 23, 42];
-
-  // Create an empty (detached) chart container.
-  const div = d3
-    .create("div")
-    .style("font", "10px sans-serif")
-    .style("text-align", "right")
-    .style("color", "white");
-
-  div
-    .selectAll("div") // Define the initial (empty) selection for the bars.
-    .data(data) // Bind this selection to the data (computing enter, update and exit).
-    .join("div") // Join the selection and the data, appending the entering bars.
-    .style("background", "steelblue")
-    .style("padding", "3px")
-    .style("margin", "1px")
-    .style("width", (d) => `${d * 10}px`) // Set the width as a function of data.
-    .text((d) => d); // Set the text of each bar as the data.
-
-  return div.node();
-}
-
-/**
  * Return Collapsible Tree
  *
  * @return DOM
  */
 function getCollapsibleTree() {
-  const root = d3.hierarchy(_DATA);
   const width = 730;
+  const margin = { top: 10, right: 120, bottom: 10, left: 40 };
+
   const dx = 10;
   const dy = width / 6;
+
   const tree = d3.tree().nodeSize([dx, dy]);
+
   const diagonal = d3
     .linkHorizontal()
     .x((d) => d.y)
     .y((d) => d.x);
-  const margin = { top: 10, right: 120, bottom: 10, left: 40 };
 
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [-margin.left, -margin.top, width, dx])
+    .style("font", "10px sans-serif")
+    .style("user-select", "none");
+
+  // Node
+  const gNode = svg
+    .append("g")
+    .attr("cursor", "pointer")
+    .attr("pointer-events", "all");
+
+  // Path between nodes
+  const gLink = svg
+    .append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#555")
+    .attr("stroke-opacity", 0.4)
+    .attr("stroke-width", 1.5);
+
+  const root = d3.hierarchy(_DATA);
   root.x0 = dy / 2;
   root.y0 = 0;
   root.descendants().forEach((d, i) => {
@@ -51,24 +46,10 @@ function getCollapsibleTree() {
     if (d.depth && d.data.name.length !== 7) d.children = null;
   });
 
-  const svg = d3
-    .create("svg")
-    .attr("viewBox", [-margin.left, -margin.top, width, dx])
-    .style("font", "10px sans-serif")
-    .style("user-select", "none");
-
-  const gLink = svg
-    .append("g")
-    .attr("fill", "none")
-    .attr("stroke", "#555")
-    .attr("stroke-opacity", 0.4)
-    .attr("stroke-width", 1.5);
-
-  const gNode = svg
-    .append("g")
-    .attr("cursor", "pointer")
-    .attr("pointer-events", "all");
-
+  /**
+   *
+   * @param {Root} source
+   */
   function update(source) {
     const duration = d3.event && d3.event.altKey ? 2500 : 250;
     const nodes = root.descendants().reverse();
@@ -182,8 +163,4 @@ function getCollapsibleTree() {
   return svg.node();
 }
 
-// app div
-const app = document.getElementById("app");
-
-// append Chart Container into app div
-app.appendChild(getCollapsibleTree());
+document.getElementById("collapsible-tree").appendChild(getCollapsibleTree());
